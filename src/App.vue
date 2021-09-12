@@ -23,6 +23,25 @@
     <v-main>
       <v-item-group>
         <v-container>
+          <!-- ALERT ERRORS -->
+          <v-alert
+            v-for="(alert, a) in errors"
+            :key="`errors${a}`"
+            border="bottom"
+            color="red"
+            outlined
+            type="error"
+          >
+            <p v-if="alert.text">
+              {{ alert.text }}
+            </p>
+            <p v-if="alert.tags">
+              {{ alert.tags }}
+            </p>
+            <p v-if="alert.author">
+              {{ alert.author }}
+            </p>
+          </v-alert>
           <!-- LOADER -->
           <v-row v-if="loading">
             <v-progress-linear
@@ -144,7 +163,7 @@
           <v-btn color="blue darken-1" text @click="dialog = false">
             Закрыть
           </v-btn>
-          <v-btn color="blue darken-1" text @click="dialog = false">
+          <v-btn color="blue darken-1" text @click="PostQuote()">
             Добавить
           </v-btn>
         </v-card-actions>
@@ -170,10 +189,17 @@ export default {
   methods: {
     Load(response) {
       if (response.data.status) {
-        this.msg = response.data.msg;
+        // this.msg = response.data.msg;
         this.response = response.data.data;
+      } else {
+        this.msg = response.data.msg;
+        this.errors = response.data.errors;
         this.snackbar = true;
+        setTimeout(this.OutputClear, 5000);
       }
+    },
+    OutputClear() {
+      this.errors = null;
     },
     LoadPage(path) {
       this.loading = true;
@@ -186,13 +212,18 @@ export default {
         .finally(() => (this.loading = false));
     },
     PostQuote() {
-      this.axios({
-        method: "post",
-        url: "http://127.0.0.1:8000/api/post",
-        responseType: "json",
-      })
+      this.loading = true;
+      this.axios
+        .post("http://127.0.0.1:8000/api/post", this.postData)
+
+        // ({
+        //   method: "post",
+        //   url: "http://127.0.0.1:8000/api/post",
+        //   responseType: "json",
+        // })
         .then((response) => this.Load(response))
         .finally(() => (this.loading = false));
+      this.dialog = false;
     },
   },
   mounted() {
@@ -209,6 +240,7 @@ export default {
     return {
       response: null,
       msg: null,
+      errors: null,
       snackbar: false,
       timeout: 2000,
       drawer: false,
