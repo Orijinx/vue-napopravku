@@ -90,7 +90,6 @@
               v-for="(item, i) in response.data"
               :key="`response.data${i}`"
               cols="12"
-              md="6"
             >
             <!-- CARDS OF QUOTES -->
               <v-item>
