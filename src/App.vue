@@ -1,19 +1,50 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      absolute
-      temporary
-      v-model="drawer"
-      class="hidden-md-and-up"
-    >
-      <v-list>
-        <v-item-group>
+    <!-- NAV BAR -->
+    <nav>
+      <!-- HAMBURGER NAV FOR MOBILE -->
+      <v-navigation-drawer
+        absolute
+        temporary
+        v-model="drawer"
+        class="hidden-md-and-up"
+      >
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title class="text-md-h6"> QUOTES </v-list-item-title>
+            <v-list-item-subtitle> Меню </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider></v-divider>
+        <v-spacer></v-spacer>
+        <v-list nav>
+          <v-list-item v-for="(item, i) in menuItems" :key="`menuitem${i}`">
+            <v-list-item-icon>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-btn @click="dialog = !dialog" text dense>
+                {{ item.title }}</v-btn
+              >
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+      <v-app-bar app dark>
+        <v-app-bar-nav-icon
+          @click.stop="drawer = !drawer"
+          class="hidden-md-and-up"
+        ></v-app-bar-nav-icon>
+
+        <v-text-field v-text="'Quotes'"></v-text-field>
+        <v-spacer></v-spacer>
+        <v-item-group class="hidden-sm-and-down">
           <v-item>
             <v-btn
               @click="dialog = !dialog"
               v-for="(item, i) in menuItems"
               text
-              dense
               :key="`menuitem${i}`"
             >
               <v-icon left v-html="item.icon"></v-icon>
@@ -21,31 +52,8 @@
             >
           </v-item>
         </v-item-group>
-      </v-list>
-    </v-navigation-drawer>
-    <v-app-bar app dark>
-      <v-app-bar-nav-icon
-        @click.stop="drawer = !drawer"
-        class="hidden-md-and-up"
-      ></v-app-bar-nav-icon>
-
-      <v-text-field v-text="'Quotes'"></v-text-field>
-      <v-spacer></v-spacer>
-      <v-item-group class="hidden-sm-and-down">
-        <v-item>
-          <v-btn
-            @click="dialog = !dialog"
-            v-for="(item, i) in menuItems"
-            text
-            :key="`menuitem${i}`"
-          >
-            <v-icon left v-html="item.icon"></v-icon>
-            {{ item.title }}</v-btn
-          >
-        </v-item>
-      </v-item-group>
-    </v-app-bar>
-    <!-- <app-header></app-header> -->
+      </v-app-bar>
+    </nav>
     <v-main>
       <v-item-group>
         <v-container>
@@ -82,11 +90,14 @@
               v-for="(item, i) in response.data"
               :key="`response.data${i}`"
               cols="12"
-              md="4"
+              md="6"
             >
+            <!-- CARDS OF QUOTES -->
               <v-item>
                 <v-card elevation="2">
-                  <v-card-title>Автор: {{ item.author }}</v-card-title>
+                  <v-card-title class="text-lg-h6">{{
+                    item.text
+                  }}</v-card-title>
                   <v-card-subtitle>{{
                     BeautyDate(item.created_at)
                   }}</v-card-subtitle>
@@ -100,14 +111,13 @@
                     >
                   </div>
 
-                  <v-card-text
-                    ><strong>Текст:</strong> {{ item.text }}</v-card-text
-                  >
+                  <v-card-subtitle>Автор: {{ item.author }}</v-card-subtitle>
                 </v-card>
               </v-item>
             </v-col>
           </v-row>
           <v-row>
+            <!-- CONTROL PANEL OF PAGES -->
             <v-toolbar dense flat>
               <v-toolbar-title left
                 >{{ response.current_page }}
@@ -149,6 +159,15 @@
         </template>
       </v-snackbar>
     </v-main>
+    <!-- FOOTER -->
+   <v-footer  dark padless>
+    <v-col
+      class="text-center"
+      cols="12"
+    >
+      {{ new Date().getFullYear() }} — <strong>QUOTES</strong>
+    </v-col>
+  </v-footer>
     <!-- MODAL INPUT -->
     <v-dialog v-model="dialog" width="500">
       <v-form ref="form" v-model="valid">
@@ -160,7 +179,6 @@
             <v-container>
               <v-row>
                 <v-col>
-                  <!-- <validation-provider name="Name" rules="required|max:10"> -->
                   <v-textarea
                     v-model="postData.text"
                     label="Текст"
@@ -168,7 +186,6 @@
                     required
                     hint="Напишите текст вашей цитату сюда."
                   ></v-textarea>
-                  <!-- </validation-provider> -->
                 </v-col>
               </v-row>
               <v-row>
@@ -189,6 +206,7 @@
                     :items="tags"
                     :rules="MaxItemRules"
                     counter="3"
+                    open-on-clear="Загрузка тэгов..."
                     item-text="name"
                     item-value="id"
                     required
@@ -222,10 +240,9 @@
 </template>
 
 <script>
-// import func from "vue-editor-bridge";
 export default {
   computed: {
-    menuItems() {
+    menuItems() { //Меню
       return [
         {
           icon: "mdi-pencil",
@@ -233,13 +250,10 @@ export default {
         },
       ];
     },
-    // TagName(){
-
-    // },
   },
 
   methods: {
-    BeautyDate(date) {
+    BeautyDate(date) { //Вывод красивой даты 
       let d = new Date(date);
       let serialized =
         d.getDay() +
@@ -253,7 +267,7 @@ export default {
         d.getMinutes();
       return serialized;
     },
-    Load(response) {
+    Load(response) {//Загрузка данных с API во VUE
       if (response.data.status) {
         // this.msg = response.data.msg;
         this.response = response.data.data;
@@ -265,18 +279,27 @@ export default {
       }
     },
 
-    GetTagList() {
+    GetTagList() {//ЗАпрос на список тэгов с сервера
+      // this.loadingTag = true;
       this.axios({
         method: "get",
-        url: "http://127.0.0.1:8000/api/tags",
+        url: "https://cloud-vault.ru/api/tags",
         responseType: "json",
-      }).then((response) => (this.tags = response.data.data));
+      })
+        .catch((error) => {
+          this.msg(error);
+          this.snackbar = true;
+        })
+        .then((response) => {
+          this.tags = response.data.data;
+          // this.loadingTag=false;
+        });
       // .finally(() => (this.loading = false));
     },
-    OutputClear() {
+    OutputClear() {//Очистка вывода ошибок с сервера
       this.errors = null;
     },
-    LoadPage(path) {
+    LoadPage(path) {//Загрузка постранички цитат
       this.loading = true;
       this.axios({
         method: "get",
@@ -284,20 +307,22 @@ export default {
         responseType: "json",
       })
         .then((response) => this.Load(response))
+        .catch((error) => {
+          this.msg(error);
+          this.snackbar = true;
+        })
         .finally(() => (this.loading = false));
     },
-    PostQuote() {
+    PostQuote() {//Добавление цитаты в БД, через запрос
       if (this.postData.text && this.postData.author && this.postData.tags) {
         this.loading = true;
         this.axios
-          .post("http://127.0.0.1:8000/api/post", this.postData)
-
-          // ({
-          //   method: "post",
-          //   url: "http://127.0.0.1:8000/api/post",
-          //   responseType: "json",
-          // })
+          .post("https://cloud-vault.ru/api/post", this.postData)
           .then((response) => this.Load(response))
+          .catch((error) => {
+            this.msg(error);
+            this.snackbar = true;
+          })
           .finally(() => (this.loading = false));
         this.dialog = false;
       } else {
@@ -306,39 +331,39 @@ export default {
       }
     },
   },
-  mounted() {
+  mounted() {//Первичная загрузка данных
     this.loading = true;
     this.axios({
       method: "get",
-      url: "http://127.0.0.1:8000/api/list",
+      url: "https://cloud-vault.ru/api/list",
       responseType: "json",
     })
       .then((response) => this.Load(response))
+      .catch((error) => {
+        alert("Ошибка сервера!"+error);
+      })
       .finally(() => (this.loading = false));
+    this.GetTagList();
   },
   data: function () {
     return {
-      response: null,
-      valid: false,
-      msg: null,
-      errors: null,
-      snackbar: false,
-      timeout: 2000,
+      response: null,//Данные от сервера
+      valid: false,//Проверка валидации
+      msg: null,//Текс сообщения от сервера
+      errors: null,//Текст ошибок от сервера
+      snackbar: false,//Отображение снэкбара
+      timeout: 2000,//Задержка перед закрытием снэкбара
       drawer: false,
-      loading: false,
-      dialog: false,
-      RequiredRules: [
-        (v) => !!v || "Обязательное поле",
-      ],
-      MaxItemRules:[
-        v =>(v.length <= 3) || "Не менее одного и не более трех"
-
-      ],
-      tags: [],
-      postData: {
-        text: null,
-        author: null,
-        tags: [],
+      loading: false,//Загрузка
+      loadingTag: true,//Загрузка тэгов
+      dialog: false,//Отображение модального окна
+      RequiredRules: [(v) => !!v || "Обязательное поле"],//Required валидация
+      MaxItemRules: [(v) => v.length <= 3 || "Не менее одного и не более трех"], //Проверка кол-ва элементов
+      tags: [],//Список доступных тэгов
+      postData: {//Объект для отправки на сервер
+        text: null,//Текс цитаты
+        author: null,//Автор
+        tags: [],//Список тэгов
       },
     };
   },
